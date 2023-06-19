@@ -8,6 +8,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,6 +34,28 @@ public class MessageService {
     public List<Map<String,Object>> getListMessage(@PathVariable("from") Integer from, @PathVariable("to") Integer to){
         return jdbcTemplate.queryForList("select * from messages where (message_from=? and message_to=?) " +
                 "or (message_to=? and message_from=?) order by created_date_time asc",from,to,from,to);
+    }
+
+    public List<Map<String, Object>> getListMessageWithProducts(@PathVariable("from") Integer from, @PathVariable("to") Integer to) {
+        List<Map<String, Object>> messages = jdbcTemplate.queryForList("SELECT * FROM messages WHERE (message_from=? AND message_to=?) OR (message_to=? AND message_from=?) ORDER BY created_date_time ASC", from, to, from, to);
+
+        List<Map<String, Object>> messagesWithProducts = new ArrayList<>();
+
+        for (Map<String, Object> message : messages) {
+            // Retrieve product information based on the created_date_time of the message
+            Map<String, Object> product = jdbcTemplate.queryForMap("SELECT tb.title, tb.content, tb.price, tb.thumbnail, p.created_date_time FROM products p " +
+                    "INNER JOIN tradeboard tb ON p.trade_board_id = tb.id " +
+                    "WHERE p.created_date_time <= ? " +
+                    "ORDER BY p.created_date_time DESC LIMIT 1", message.get("created_date_time"));
+            // Combine the message and product information
+            Map<String, Object> messageWithProduct = new HashMap<>();
+            messageWithProduct.put("message", message);
+            messageWithProduct.put("product", product);
+
+            messagesWithProducts.add(messageWithProduct);
+        }
+
+        return messagesWithProducts;
     }
 
 

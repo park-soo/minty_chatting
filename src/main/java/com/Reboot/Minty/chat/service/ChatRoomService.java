@@ -1,14 +1,18 @@
 package com.Reboot.Minty.chat.service;
 
 import com.Reboot.Minty.chat.Entity.ChatRoom;
+import com.Reboot.Minty.chat.Entity.Products;
 import com.Reboot.Minty.chat.dto.ChatRoomDTO;
+import com.Reboot.Minty.chat.dto.ProductsDTO;
 import com.Reboot.Minty.chat.repository.ChatRoomRepository;
+import com.Reboot.Minty.chat.repository.ProductsRepository;
 import com.Reboot.Minty.member.entity.User;
 import com.Reboot.Minty.member.service.UserService;
 import com.Reboot.Minty.tradeBoard.entity.TradeBoard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -20,7 +24,10 @@ public class ChatRoomService {
     @Autowired
     private UserService userService;
 
-    public ChatRoom saveChatRoom(ChatRoomDTO chatRoomDTO) {
+    @Autowired
+    private ProductsRepository productsRepository;
+
+    public ChatRoom saveChatRoom(ChatRoomDTO chatRoomDTO, ProductsDTO productsDTO) {
 
         User my = userService.getUserInfoById(chatRoomDTO.getMyId());
         User other = userService.getUserInfoById(chatRoomDTO.getOtherId());
@@ -29,6 +36,14 @@ public class ChatRoomService {
         System.out.println(my.getId());
         System.out.println(other.getId());
         System.out.println(my.getNickName());
+
+        Products products = new Products();
+        products.setOther(other);
+        products.setMy(my);
+        products.setTradeBoard(tradeBoard);
+        products.setCreateTime(LocalDateTime.now());
+
+        productsRepository.save(products);
 
         ChatRoom chatRoom = new ChatRoom();
         // 중복 체크

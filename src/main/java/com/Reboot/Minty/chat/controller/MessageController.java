@@ -32,19 +32,19 @@ public class MessageController {
 
     @GetMapping("listmessage/{from}/{to}")
     public List<Map<String,Object>> getListMessageChat(@PathVariable("from") Integer from, @PathVariable("to") Integer to){
-        return messageService.getListMessage(from, to);
+        return messageService.getListMessageWithProducts(from, to);
     }
 
-    @MessageMapping("/chat/group/{to}")
-    public void sendMessageToGroup(@DestinationVariable Integer to, MessageGroupDTO message) {
-        messageService.sendMessageGroup(to,message);
-
-    }
-
-    @GetMapping("listmessage/group/{groupid}")
-    public List<Map<String,Object>> getListMessageGroupChat(@PathVariable("groupid") Integer groupid){
-        return messageService.getListMessageGroups(groupid);
-    }
+//    @MessageMapping("/chat/group/{to}")
+//    public void sendMessageToGroup(@DestinationVariable Integer to, MessageGroupDTO message) {
+//        messageService.sendMessageGroup(to,message);
+//
+//    }
+//
+//    @GetMapping("listmessage/group/{groupid}")
+//    public List<Map<String,Object>> getListMessageGroupChat(@PathVariable("groupid") Integer groupid){
+//        return messageService.getListMessageGroups(groupid);
+//    }
 
     @GetMapping("/fetchAllUsers/{myId}")
     public List<Map<String,Object>> fetchAll(@PathVariable("myId") String myId) {
@@ -53,10 +53,10 @@ public class MessageController {
 
     }
 
-    @GetMapping("/fetchAllGroups/{groupid}")
-    public List<Map<String,Object>> fetchAllGroup(@PathVariable("groupid") String groupId) {
-        return  userAndGroupService.fetchAllGroup(groupId);
-    }
+//    @GetMapping("/fetchAllGroups/{groupid}")
+//    public List<Map<String,Object>> fetchAllGroup(@PathVariable("groupid") String groupId) {
+//        return  userAndGroupService.fetchAllGroup(groupId);
+//    }
 
     @GetMapping("/getUserId")
     public Long getUserId(HttpSession session) {

@@ -8,8 +8,7 @@ let newMessages = new Map();
 function connectToChat(userName) {                                  // userId
     console.log(userName);
     console.log("connecting to chat...")
-    let socket = new SockJS(url + '/ws');                       // 소켓 연결
-    // let socket=new WebSocket("wss://localhost:8080/ws")
+    let socket = new SockJS(url + '/ws');// 소켓 연결
     stompClient = Stomp.over(socket);                                   //stomp 연결
     stompClient.connect({"X-Authorization":"Bearer s"}, function (frame) {
         console.log("connected to: " + frame);
@@ -104,6 +103,7 @@ window.onload = function() {
     fetchAll();
     connectToChat(localStorage.getItem("userId"));
 
+
   };
 
 function fetchAll() {
@@ -133,15 +133,24 @@ function fetchAll() {
                 '</div>'+
                 '</li>';
                 } else  {
-                    usersTemplateHTML = usersTemplateHTML + '<li class="active" id="child_message" onclick="formMessageLauch('+users[i]['other']+',\''+users[i]['otherNickName']+'\',\'user\')" data-userid="'+users[i]['otherNickName']+'" data-type="user">'+
+
+                    usersTemplateHTML = usersTemplateHTML + '<li class="active" id="child_message" onclick="formMessageLauch(\'' + users[i]['other'] + '\', \'' + users[i]['otherNickName'] + '\', \'user\', \'' + users[i]['title'] + '\', \'' + users[i]['content'] + '\', \'' + users[i]['price'] + '\', \'' + users[i]['thumbnail'] + '\')" data-userid="' + users[i]['otherNickName'] + '" data-type="user" data-thumbnail="' + users[i]['thumbnail'] + '" data-title="' + users[i]['title'] + '" data-content="' + users[i]['content'] + '" data-price="' + users[i]['price'] + '">' +
                         '<div class="d-flex bd-highlight">'+
                         '<div class="img_cont">'+
                         '<img src="https://static.turbosquid.com/Preview/001292/481/WV/_D.jpg" class="rounded-circle user_img">'+
-                        '<span class="online_icon"></span>'+
                         '</div>'+
                         '<div class="user_info" id="userNameAppender_' + users[i]['otherNickName'] + '">'+
                         '<span>'+users[i]['otherNickName']+'</span>'+
-                        '<p>'+users[i]['otherNickName']+' is online</p>'+
+                        '</div>'+
+                        '<div class="img_cont">'+
+                        '</div>'+
+                        '<div class="img_cont">'+
+                        '<img src="https://storage.cloud.google.com/reboot-minty-storage/' + users[i]['thumbnail'] + '" class="rounded-circle user_img"/>' +
+                        '</div>'+
+                        '<div class="user_info" id="userNameAppender_' + users[i]['otherNickName'] + '">'+
+                        '<span>제목'+users[i]['title']+'</span>'+
+                        '<span>가격'+users[i]['price']+'</span>'+
+                        '<p>내용'+users[i]['content']+'</p>'+
                         '</div>'+
                         '</div>'+
                         '</li>';
@@ -221,7 +230,7 @@ function sendMessage(type) {
 
 
 
-function formMessageLauch(id,name,type){
+function formMessageLauch(id,name,type,title,content,price,thumbnail){
 
     let buttonSend= document.getElementById("buttonSend");
     if(buttonSend!==null){
@@ -230,7 +239,8 @@ function formMessageLauch(id,name,type){
 
     let nama=$('#formMessageHeader .user_info').find('span')
 
-    nama.html("Chat With "+name);
+    nama.html("Chat With "+name +"제목"+ title +"내용"+ content + "가격"+price + '<img src="https://storage.cloud.google.com/reboot-minty-storage/' + thumbnail + '" alt="Thumbnail" class="rounded-circle user_img">');
+
     nama.attr("data-id",id);
     let isNew = document.getElementById("newMessage_" + id) !== null;
     if (isNew) {
@@ -253,21 +263,40 @@ function formMessageLauch(id,name,type){
     var userId = localStorage.getItem("userId");
     if(type==="user"){
         $.get(url + "/listmessage/"+userId+"/"+id, function (response) {
+            console.log(response);
             let messages = response;
             let messageTemplateHTML = "";
+
+            // 생성 날짜 기준으로 메시지와 상품 정보를 정렬
+            messages.sort((a, b) => new Date(a.message.created_date_time) - new Date(b.message.created_date_time));
+
             for (let i = 0; i < messages.length; i++) {
-                if(messages[i]['message_from']==userId){
-                    messageTemplateHTML = messageTemplateHTML + '<div id="child_message" class="d-flex justify-content-start mb-4">'+
-                    '<div id="child_message" class="msg_cotainer">'+messages[i]['message_text']+
-                    '</div>'+
-                    '</div>';
-                }else{
-                    messageTemplateHTML = messageTemplateHTML + '<div id="child_message" class="d-flex justify-content-end mb-4">'+
-                    '<div id="child_message" class="msg_cotainer_send">'+messages[i]['message_text']+
-                    '</div>'+
-                    '</div>';
+                let message = messages[i].message;  // 메시지 정보
+                let product = messages[i].product;  // 상품 정보
+
+                if (message['message_from'] == userId) {
+                    messageTemplateHTML += '<div id="child_message" class="d-flex justify-content-start mb-4">' +
+                        '<div id="child_message" class="msg_cotainer">' + message['message_text'] +
+                        '</div>' +
+                        '</div>';
+                } else {
+                    messageTemplateHTML += '<div id="child_message" class="d-flex justify-content-end mb-4">' +
+                        '<div id="child_message" class="msg_cotainer_send">' + message['message_text'] +
+                        '</div>' +
+                        '</div>';
                 }
 
+                // 상품 정보를 추가하여 템플릿에 표시 (상품 정보가 있는 경우에만 추가)
+                if (product) {
+                    messageTemplateHTML += '<div id="child_message" class="d-flex justify-content-start mb-4">' +
+                        '<div id="child_message" class="product_info">' +
+                        '<img src="https://storage.cloud.google.com/reboot-minty-storage/' + product['thumbnail'] + '" alt="Thumbnail" class="rounded-circle user_img">' + '<br>' +
+                        '제목: ' + product['title'] + '<br>' +
+                        '내용: ' + product['content'] +'<br>' +
+                        '가격: ' + product['price']+
+                        '</div>' +
+                        '</div>';
+                }
             }
             $('#formMessageBody').append(messageTemplateHTML);
         });
