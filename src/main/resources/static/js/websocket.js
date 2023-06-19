@@ -329,8 +329,9 @@ function formMessageLauch(id,name,type,title,content,price,thumbnail){
                 }
             }
             $('#formMessageBody').append(messageTemplateHTML);
-        }).done(function (){
-            saveData();
+        }).done(function (products){
+            var lastProduct = products[products.length-1]
+            saveData(lastProduct);
         });
 
         $.get(url + "/listProducts/" + userId + "/" + id, function(response) {
@@ -360,8 +361,9 @@ function formMessageLauch(id,name,type,title,content,price,thumbnail){
             }
             $('#formMessageBody').append(productTemplateHTML);
         }).done(function (products){
-            saveData(products);
-        });;
+            var lastProduct = products[products.length-1]
+            saveData(lastProduct);
+        });
 
         function saveData(data) {
             console.log(data);
